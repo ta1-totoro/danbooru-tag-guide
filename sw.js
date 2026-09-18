@@ -1,4 +1,4 @@
-const CACHE_NAME = 'danbooru-tag-guide-v20';
+const CACHE_NAME = 'danbooru-tag-guide-v21';
 const urlsToCache = [
   './',
   './index.html',
