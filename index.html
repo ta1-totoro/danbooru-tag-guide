@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Danbooruタグまとめ & プロンプト優先順位ガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --surface-2: #0f3460;
+  --ink: #eaeaea;
+  --muted: #a0a0a0;
+  --accent: #e94560;
+  --accent-weak: rgba(233, 69, 96, 0.15);
+  --accent-glow: rgba(233, 69, 96, 0.25);
+  --line: rgba(234, 234, 234, 0.08);
+  --tag-bg: #0a2540;
+  --tag-border: rgba(233, 69, 96, 0.3);
+  --input-bg: #0d1b2a;
+  --radius: 14px;
+  --space: clamp(0.9rem, 0.7rem + 1vw, 1.3rem);
+  --step-0: clamp(0.9rem, 0.88rem + 0.15vw, 1rem);
+  --step-1: clamp(1rem, 0.95rem + 0.25vw, 1.15rem);
+  --step-2: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+  --step-3: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html, body {
+  overflow-x: hidden;
+  touch-action: pan-y;
+}
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--step-0);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  border-bottom: 1px solid var(--line);
+  padding: calc(var(--space) * 2) var(--space);
+  text-align: center;
+}
+
+header h1 {
+  font-family: "Outfit", "Noto Sans JP", sans-serif;
+  font-size: var(--step-3);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+header h1 span { color: var(--accent); }
+
+header p {
+  color: var(--muted);
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Layout */
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: calc(var(--space) * 1.5) var(--space);
+}
+
+section {
+  margin-bottom: calc(var(--space) * 2.5);
+}
+
+section h2 {
+  font-family: "Outfit", "Noto Sans JP", sans-serif;
+  font-size: var(--step-2);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent);
+  display: inline-block;
+}
+
+section h3 {
+  font-family: "Outfit", "Noto Sans JP", sans-serif;
+  font-size: var(--step-1);
+  font-weight: 600;
+  color: var(--accent);
+  margin: 1.8rem 0 0.7rem;
+}
+
+/* Editable prompt textarea */
+.prompt-editor {
+  background: var(--input-bg);
+  border: 1px solid var(--tag-border);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+  margin: 0.8rem 0 0.4rem;
+  width: 100%;
+  min-height: 180px;
+  font-family: "JetBrains Mono", "Noto Sans JP", monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--ink);
+  resize: vertical;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.prompt-editor:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.editor-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+/* Buttons */
+.btn-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.btn {
+  padding: 0.55rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  flex: 1;
+  min-width: 120px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.btn:active { opacity: 0.75; transform: scale(0.98); }
+
+.btn-secondary {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+/* Prompt Box */
+.prompt-box {
+  background: var(--surface);
+  border: 1px solid var(--tag-border);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1);
+  margin: 0.8rem 0;
+  position: relative;
+}
+
+.prompt-box pre {
+  font-family: "JetBrains Mono", "Noto Sans JP", monospace;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.prompt-box .label {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.7rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Tag pills */
+.tag {
+  display: inline-block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  background: var(--tag-bg);
+  border: 1px solid var(--tag-border);
+  border-radius: 6px;
+  padding: 0.18rem 0.55rem;
+  color: #ffd6dc;
+  margin: 0.12rem;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none; /* Prevent iOS callout menu on long-press */
+}
+
+.tag:active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  transform: scale(0.95);
+}
+
+.tag.active {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: #2ecc71;
+  color: #aaffaa;
+}
+
+.tag.active::before {
+  content: "✓ ";
+  color: #2ecc71;
+  font-weight: 700;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--tag-border);
+  color: var(--accent);
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  border-radius: 4px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  font-family: "Noto Sans JP", sans-serif;
+  line-height: 1.3;
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.copy-btn:active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.tag.copied {
+  background: #2ecc71;
+  border-color: #2ecc71;
+  color: #fff;
+}
+
+/* Tag dictionary - stacked layout (tag on top, meaning below) */
+.dict-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+}
+
+.dict-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  padding-right: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  position: relative;
+}
+
+.dict-card .tag {
+  align-self: flex-start;
+  margin: 0;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.6rem;
+}
+
+.dict-card .meaning {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  padding-left: 0.1rem;
+}
+
+/* Priority order cards */
+.order-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 0.7rem 0;
+  position: relative;
+  padding-left: 3rem;
+}
+
+.order-num {
+  position: absolute;
+  left: 0.9rem;
+  top: 1rem;
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-card h4 {
+  font-family: "Outfit", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+
+.order-card p {
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.order-card .example {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--input-bg);
+  border-radius: 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  color: #ffd6dc;
+  word-break: break-word;
+}
+
+/* Priority quick ref cards */
+.priority-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin: 0.5rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.priority-card .p-num {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.1rem;
+}
+
+.priority-card .p-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.priority-card .p-cat {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin-bottom: 0.35rem;
+}
+
+.priority-card .p-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.priority-card .p-tags .tag {
+  margin: 0;
+}
+
+/* Priority flow */
+.priority-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 1rem 0;
+  padding: 0.8rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+.priority-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--surface-2);
+  padding: 0.35rem 0.6rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+}
+
+.priority-item .p-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.priority-arrow {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+/* Note box */
+.note {
+  background: var(--accent-weak);
+  border-left: 3px solid var(--accent);
+  padding: 0.85rem 1rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 0.8rem 0;
+  font-size: 0.88rem;
+}
+
+.note strong { color: var(--accent); }
+
+/* Warning box */
+.warning {
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid #ffc107;
+  padding: 0.85rem 1rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 0.8rem 0;
+  font-size: 0.88rem;
+  color: #ffe082;
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--accent);
+  color: #fff;
+  padding: 0.7rem 1.4rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 9999;
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(233, 69, 96, 0.35);
+}
+
+#toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: calc(var(--space) * 1.2) var(--space);
+  color: var(--muted);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--line);
+}
+
+/* Print */
+@media print {
+  body { background: #fff; color: #000; }
+  header, .prompt-box, .dict-card, .order-card, .priority-card { background: #f5f5f5 !important; }
+  .tag { background: #eee; border-color: #ccc; color: #333; }
+}
+
+/* Collapsible section */
+.collapsible-section {
+  margin: 1.5rem 0;
+}
+
+.collapsible-header {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.15s;
+}
+
+.collapsible-header:active {
+  background: var(--surface-2);
+}
+
+.collapsible-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.collapsible-arrow {
+  color: var(--accent);
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.collapsible-section.open .collapsible-arrow {
+  transform: rotate(180deg);
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.35s ease;
+  padding: 0 0.5rem;
+}
+
+.collapsible-section.open .collapsible-content {
+  max-height: 5000px;
+  padding: 0.8rem 0.5rem;
+}
+
+.collapsible-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+@media (min-width: 600px) {
+  .dict-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+}
+</style>
+<!-- PWA Support -->
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Danbooruタグガイド">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- PWA Support End -->
+</head>
+<body>
+
+<div id="toast">コピーしました！</div>
+
+<header>
+  <h1>Danbooruタグまとめ<br><span>プロンプト優先順位ガイド</span></h1>
+  <p>Stable Diffusion用 Danbooruタグ辞書 & 順序解説</p>
+</header>
+
+<main>
+
+<!-- 編集可能なプロンプト入力欄 -->
+<section>
+  <h2>プロンプト編集欄</h2>
+  <p class="editor-hint">下の欄を直接編集して、コピーボタン使えます。タグ辞書のタグをタップするとここに追加されます。</p>
+
+  <textarea id="prompt-editor" class="prompt-editor" placeholder="ここにプロンプトを入力...">masterpiece, best quality,
+1girl, solo,
+half_updo, very_long_hair, silver_hair, hair_bow, blue_bow, bangs, eyebrows_visible_through_hair, hair_between_eyes,
+big_eyes, light_smile, blush, small_nose, looking_at_viewer,
+dress_shirt, white_shirt, collared_shirt, long_sleeves, sleeve_cuffs, see-through_shirt, open_shirt, no_bra,
+large_breasts, perky_breasts, cleavage, shiny_skin,
+incoming_hug, reaching_towards_viewer, outstretched_arms,
+pov, cowboy_shot, navel,
+anime_coloring, cel_shading, thick_lineart</textarea>
+
+  <div class="btn-row">
+    <button class="btn" onclick="copyEditor()" ontouchstart="">プロンプトをコピー</button>
+    <button class="btn btn-secondary" onclick="resetPrompt()" ontouchstart="">初期値に戻す</button>
+    <button class="btn btn-secondary" onclick="clearPrompt()" ontouchstart="">クリア</button>
+  </div>
+
+  <div class="warning">
+    <strong>注意：</strong>このHTMLファイルはプロンプトを編集・コピーするための辞書です。実際の画像生成はStable Diffusion（AUTOMATIC1111やComfyUIなど）で行ってください。
+  </div>
+  <div class="note" style="margin-top:0.8rem;font-size:0.82rem;">
+    <strong>iPhoneでボタンが反応しない場合：</strong>「ファイル」アプリや「ダウンロード」から開くとJavaScriptが無効のプレビューモードになることがあります。Safariで開くか、共有ボタン → 「Safariで開く」を選んでください。
+  </div>
+</section>
+
+<!-- プロンプトの入力順序解説 -->
+<section>
+  <h2>プロンプトの入力順序を解説</h2>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1rem;">
+    Stable DiffusionのCLIPでは、<strong style="color:var(--accent);">先頭に近いタグほどAIへの影響が強い</strong>傾向があります。以下の順序で入力するのが基本です。
+  </p>
+
+  <div class="order-card">
+    <span class="order-num">1</span>
+    <h4>品質タグを最初に書く</h4>
+    <p>AIに「高品質で描いて」と指示するタグ。常にプロンプトの先頭に置きます。これがないと画質が不安定になります。</p>
+    <div class="example">masterpiece, best quality,</div>
+  </div>
+
+  <div class="order-card">
+    <span class="order-num">2</span>
+    <h4>主体を指定する</h4>
+    <p>「誰が何人いるか」を決めます。1girl / solo は基本中の基本です。</p>
+    <div class="example">1girl, solo,</div>
+  </div>
+
+  <div class="order-card">
+    <span class="order-num">3</span>
+    <h4>髪型・髪色を書く</h4>
+    <p>キャラクターの印象の核となる部分。very_long_hair などの長さタグは色タグの前に置くと認識しやすいです。</p>
+    <div class="example">half_updo, very_long_hair, silver_hair, hair_bow, blue_bow, bangs,</div>
+  </div>
+
+  <div class="order-card">
+    <span class="order-num">4</span>
+    <h4>顔・表情を書く</h4>
+    <p>目・鼻・口・頬のタグを並べます。eyebrows_visible_through_hair はアニメ特有の表現で、実写ではありえません。</p>
+    <div class="example">big_eyes, light_smile, blush, small_nose, looking_at_viewer,</div>
+  </div>
+
+  <div class="order-card">
+    <span class="order-num">5</span>
+    <h4>服装を書く</h4>
+    <p>服の種類 → 色 → 状態の順が自然です。open_shirt や see-through_shirt は服の種類の後に置きます。</p>
+    <div class="example">dress_shirt, white_shirt, collared_shirt, long_sleeves, sleeve_cuffs, see-through_shirt, open_shirt, no_bra,</div>
+  </div>
+
+  <div class="order-card">
+    <span class="order-num">6</span>
+    <h4>身体・胸を書く</h4>
+    <p>サイズ → 形 → 露出の順がおすすめです。shiny_skin は肌全体の質感なので身体タグの近くに置きます。</p>
+    <div class="example">large_breasts, perky_breasts, cleavage, shiny_skin,</div>
+  </div>
+
+  <div class="order-card">
+    <span class="order-num">7</span>
+    <h4>ポーズ・動作を書く</h4>
+    <p>キャラクターが何をしているか。incoming_hug と reaching_towards_viewer は組み合わせると「ハグしようと手を伸ばす」になります。</p>
+    <div class="example">incoming_hug, reaching_towards_viewer, outstretched_arms,</div>
+  </div>
+
+  <div class="order-card">
+    <span class="order-num">8</span>
+    <h4>構図・カメラを書く</h4>
+    <p>どこからどう撮るか。pov（一人称視点）と cowboy_shot（太ももから上）は組み合わせると「目の前にいる感じ」が出ます。</p>
+    <div class="example">pov, cowboy_shot, navel,</div>
+  </div>
+
+  <div class="order-card">
+    <span class="order-num">9</span>
+    <h4>画風タグを最後に書く</h4>
+    <p>anime_coloring などの画風タグを先頭に置くと、画風が強く出すぎて顔の構造が崩れることがあります。必ず末尾に。</p>
+    <div class="example">anime_coloring, cel_shading, thick_lineart</div>
+  </div>
+
+  <div class="note">
+    <strong>覚え方：</strong>「<strong>品質 → 誰 → 髪 → 顔 → 服 → 身体 → 動き → 構図 → 画風</strong>」の順に書くと、AIが混乱しにくく意図が伝わりやすいです。
+  </div>
+</section>
+
+<!-- 画風タグの組み合わせ例 -->
+<section>
+  <h2>画風タグの組み合わせ例</h2>
+  <p style="color:var(--muted);font-size:0.88rem;margin-bottom:0.8rem;">
+    プロンプトの末尾に置くだけで画風がゴリゴリ変わります。キャラ・ポーズ・構図はそのままで、画風タグだけを入れ替えてください。
+  </p>
+
+  <div class="dict-card" style="margin:0.5rem 0;" data-combo="anime_coloring, cel_shading, thick_lineart">
+    <span class="tag" data-tag="anime_coloring">anime_coloring</span>
+    <span class="tag" data-tag="cel_shading">cel_shading</span>
+    <span class="tag" data-tag="thick_lineart">thick_lineart</span>
+    <span class="meaning" style="margin-top:0.4rem;"><strong style="color:var(--accent);">標準セル画風</strong> — 影をはっきり塗り分ける太線アニメ。最も安定したアニメらしさ。</span>
+  </div>
+
+  <div class="dict-card" style="margin:0.5rem 0;" data-combo="anime_coloring, soft_shading, color_trace">
+    <span class="tag" data-tag="anime_coloring">anime_coloring</span>
+    <span class="tag" data-tag="soft_shading">soft_shading</span>
+    <span class="tag" data-tag="color_trace">color_trace</span>
+    <span class="meaning" style="margin-top:0.4rem;"><strong style="color:var(--accent);">ソフト色トレス風</strong> — グラデーション影＋輪郭線に色が乗る。イラスト寄りの柔らかいアニメ風。</span>
+  </div>
+
+  <div class="dict-card" style="margin:0.5rem 0;" data-combo="anime_coloring, flat_color, thick_lineart">
+    <span class="tag" data-tag="anime_coloring">anime_coloring</span>
+    <span class="tag" data-tag="flat_color">flat_color</span>
+    <span class="tag" data-tag="thick_lineart">thick_lineart</span>
+    <span class="meaning" style="margin-top:0.4rem;"><strong style="color:var(--accent);">平塗りキービジュ風</strong> — 影なしの平塗り。古いアニメやゲームKVに近い。線画が際立つ。</span>
+  </div>
+
+  <div class="dict-card" style="margin:0.5rem 0;" data-combo="anime_coloring, soft_shading, thin_lineart">
+    <span class="tag" data-tag="anime_coloring">anime_coloring</span>
+    <span class="tag" data-tag="soft_shading">soft_shading</span>
+    <span class="tag" data-tag="thin_lineart">thin_lineart</span>
+    <span class="meaning" style="margin-top:0.4rem;"><strong style="color:var(--accent);">ソフト細線風</strong> — 細い線画にグラデーション影。軽やかで繊細な印象。ライトノベルイラスト寄り。</span>
+  </div>
+
+  <div class="dict-card" style="margin:0.5rem 0;" data-combo="anime_coloring, cel_shading, thin_lineart">
+    <span class="tag" data-tag="anime_coloring">anime_coloring</span>
+    <span class="tag" data-tag="cel_shading">cel_shading</span>
+    <span class="tag" data-tag="thin_lineart">thin_lineart</span>
+    <span class="meaning" style="margin-top:0.4rem;"><strong style="color:var(--accent);">細線セル画風</strong> — 影ははっきり分けるが線は細い。モダンなアニメ調に近い。</span>
+  </div>
+
+  <div class="dict-card" style="margin:0.5rem 0;" data-combo="anime_coloring, flat_color, thin_lineart">
+    <span class="tag" data-tag="anime_coloring">anime_coloring</span>
+    <span class="tag" data-tag="flat_color">flat_color</span>
+    <span class="tag" data-tag="thin_lineart">thin_lineart</span>
+    <span class="meaning" style="margin-top:0.4rem;"><strong style="color:var(--accent);">極薄平塗り風</strong> — 影なし・線細。ミニマルでフラットなアニメ表現。</span>
+  </div>
+
+  <div class="dict-card" style="margin:0.5rem 0;" data-combo="anime_coloring, takeuchi_takashi, type-moon">
+    <span class="tag" data-tag="anime_coloring">anime_coloring</span>
+    <span class="tag" data-tag="takeuchi_takashi">takeuchi_takashi</span>
+    <span class="tag" data-tag="type-moon">type-moon</span>
+    <span class="meaning" style="margin-top:0.4rem;"><strong style="color:var(--accent);">武内崇風（型月）</strong> — 細い線画・シャープな吊り目・高彩度。セイバーフェイス寄りのクールなアニメ絵。</span>
+  </div>
+
+  <div class="note" style="margin-top:1rem;">
+    <strong>使い方：</strong>上のタグをタップして編集欄に追加し、既存の画風タグ（anime_coloring, cel_shading, thick_lineart など）と入れ替えてください。画風タグは必ずプロンプトの最後に置きます。
+  </div>
+</section>
+
+<!-- 優先順位早見表 -->
+<section>
+  <h2>優先順位早見表</h2>
+
+  <div class="priority-flow">
+    <div class="priority-item"><span class="p-icon">1</span> 品質</div>
+    <span class="priority-arrow">→</span>
+    <div class="priority-item"><span class="p-icon">2</span> 主体</div>
+    <span class="priority-arrow">→</span>
+    <div class="priority-item"><span class="p-icon">3</span> 髪</div>
+    <span class="priority-arrow">→</span>
+    <div class="priority-item"><span class="p-icon">4</span> 顔</div>
+    <span class="priority-arrow">→</span>
+    <div class="priority-item"><span class="p-icon">5</span> 服装</div>
+    <span class="priority-arrow">→</span>
+    <div class="priority-item"><span class="p-icon">6</span> 身体</div>
+    <span class="priority-arrow">→</span>
+    <div class="priority-item"><span class="p-icon">7</span> ポーズ</div>
+    <span class="priority-arrow">→</span>
+    <div class="priority-item"><span class="p-icon">8</span> 構図</div>
+    <span class="priority-arrow">→</span>
+    <div class="priority-item"><span class="p-icon">9</span> 画風</div>
+  </div>
+
+  <div class="priority-card">
+    <span class="p-num">1</span>
+    <div class="p-body">
+      <div class="p-cat">品質</div>
+      <div class="p-tags"><span class="tag" data-tag="masterpiece">masterpiece</span> <span class="tag" data-tag="best quality">best quality</span></div>
+    </div>
+  </div>
+  <div class="priority-card">
+    <span class="p-num">2</span>
+    <div class="p-body">
+      <div class="p-cat">主体</div>
+      <div class="p-tags"><span class="tag" data-tag="1girl">1girl</span> <span class="tag" data-tag="solo">solo</span></div>
+    </div>
+  </div>
+  <div class="priority-card">
+    <span class="p-num">3</span>
+    <div class="p-body">
+      <div class="p-cat">髪型・髪色</div>
+      <div class="p-tags"><span class="tag" data-tag="half_updo">half_updo</span> <span class="tag" data-tag="very_long_hair">very_long_hair</span> <span class="tag" data-tag="silver_hair">silver_hair</span></div>
+    </div>
+  </div>
+  <div class="priority-card">
+    <span class="p-num">4</span>
+    <div class="p-body">
+      <div class="p-cat">顔・表情</div>
+      <div class="p-tags"><span class="tag" data-tag="bangs">bangs</span> <span class="tag" data-tag="big_eyes">big_eyes</span> <span class="tag" data-tag="blush">blush</span> <span class="tag" data-tag="light_smile">light_smile</span></div>
+    </div>
+  </div>
+  <div class="priority-card">
+    <span class="p-num">5</span>
+    <div class="p-body">
+      <div class="p-cat">服装</div>
+      <div class="p-tags"><span class="tag" data-tag="dress_shirt">dress_shirt</span> <span class="tag" data-tag="open_shirt">open_shirt</span> <span class="tag" data-tag="see-through_shirt">see-through_shirt</span></div>
+    </div>
+  </div>
+  <div class="priority-card">
+    <span class="p-num">6</span>
+    <div class="p-body">
+      <div class="p-cat">身体・胸</div>
+      <div class="p-tags"><span class="tag" data-tag="large_breasts">large_breasts</span> <span class="tag" data-tag="perky_breasts">perky_breasts</span> <span class="tag" data-tag="cleavage">cleavage</span> <span class="tag" data-tag="shiny_skin">shiny_skin</span></div>
+    </div>
+  </div>
+  <div class="priority-card">
+    <span class="p-num">7</span>
+    <div class="p-body">
+      <div class="p-cat">ポーズ・動作</div>
+      <div class="p-tags"><span class="tag" data-tag="incoming_hug">incoming_hug</span> <span class="tag" data-tag="reaching_towards_viewer">reaching_towards_viewer</span> <span class="tag" data-tag="outstretched_arms">outstretched_arms</span></div>
+    </div>
+  </div>
+  <div class="priority-card">
+    <span class="p-num">8</span>
+    <div class="p-body">
+      <div class="p-cat">構図・カメラ</div>
+      <div class="p-tags"><span class="tag" data-tag="pov">pov</span> <span class="tag" data-tag="cowboy_shot">cowboy_shot</span> <span class="tag" data-tag="navel">navel</span></div>
+    </div>
+  </div>
+  <div class="priority-card">
+    <span class="p-num">9</span>
+    <div class="p-body">
+      <div class="p-cat">画風・技術</div>
+      <div class="p-tags"><span class="tag" data-tag="anime_coloring">anime_coloring</span> <span class="tag" data-tag="cel_shading">cel_shading</span> <span class="tag" data-tag="thick_lineart">thick_lineart</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 重み付け -->
+<section>
+  <h2>重み付け</h2>
+  <p style="color:var(--muted);font-size:0.88rem;margin-bottom:0.6rem;">順序より重みの方が影響が大きい。括弧で強調・弱調する。</p>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="(tag:1.2)">(tag:1.2)</span>
+      <span class="meaning">1.2倍強調</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="((tag))">((tag))</span>
+      <span class="meaning">約1.21倍強調（SD1.5系）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="[tag]">[tag]</span>
+      <span class="meaning">弱調（強度を下げる）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="(tag:0.8)">(tag:0.8)</span>
+      <span class="meaning">0.8倍に弱調</span>
+    </div>
+  </div>
+  <div class="note">
+    <strong>例：</strong><span class="tag" data-tag="(large_breasts:1.3)">(large_breasts:1.3)</span> と書くと胸がより強調される。位置を変えるより確実。
+  </div>
+</section>
+
+<!-- タグ辞書 -->
+<section>
+  <h2>タグ辞書</h2>
+  <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">タグをタップ → 編集欄に追加 / 長押し → タグだけコピー</p>
+
+  <h3>品質・基本</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="masterpiece">masterpiece</span>
+      <span class="meaning">最高品質の指示</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="best quality">best quality</span>
+      <span class="meaning">品質向上</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="highres">highres</span>
+      <span class="meaning">高解像度（1600x1200以上）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="absurdres">absurdres</span>
+      <span class="meaning">超高解像度（3200x2400以上）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="incredibly_absurdres">incredibly_absurdres</span>
+      <span class="meaning">極超高解像度（10000px以上）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="simple_background">simple_background</span>
+      <span class="meaning">シンプルな背景（キャラが際立つ）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="white_background">white_background</span>
+      <span class="meaning">白背景</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="detailed_background">detailed_background</span>
+      <span class="meaning">背景も細かく描く</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="depth_of_field">depth_of_field</span>
+      <span class="meaning">被写界深度（背景ぼかし）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="1girl">1girl</span>
+      <span class="meaning">女性1人</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="solo">solo</span>
+      <span class="meaning">その人物のみ</span>
+    </div>
+  </div>
+
+  <h3>髪型・髪色</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="very_long_hair">very_long_hair</span>
+      <span class="meaning">腰〜下まで届く髪</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="silver_hair">silver_hair</span>
+      <span class="meaning">銀色・メタリックな白髪</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="half_updo">half_updo</span>
+      <span class="meaning">ハーフアップ</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="hair_bow">hair_bow</span>
+      <span class="meaning">蝶結び型の髪飾り</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="blue_bow">blue_bow</span>
+      <span class="meaning">青色のボウ</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="bangs">bangs</span>
+      <span class="meaning">前髪</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="hair_between_eyes">hair_between_eyes</span>
+      <span class="meaning">目の間に髪がかかる</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="eyebrows_visible_through_hair">eyebrows_visible_through_hair</span>
+      <span class="meaning">前髪越しに眉毛が見える（アニメ特有）</span>
+    </div>
+  </div>
+
+  <h3>顔・表情</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="big_eyes">big_eyes</span>
+      <span class="meaning">大きな瞳</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="small_nose">small_nose</span>
+      <span class="meaning">小さな鼻（アニメ的）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="blush">blush</span>
+      <span class="meaning">頬の赤み</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="light_smile">light_smile</span>
+      <span class="meaning">控えめな微笑み</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="looking_at_viewer">looking_at_viewer</span>
+      <span class="meaning">視聴者を見つめる</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="tareme">tareme</span>
+      <span class="meaning">垂れ目（可憐・無垢）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="tsurime">tsurime</span>
+      <span class="meaning">吊り目（ツンデレ・強気）</span>
+    </div>
+  </div>
+
+  <h3>服装（シャツ系）</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="dress_shirt">dress_shirt</span>
+      <span class="meaning">ワイシャツ（礼服シャツ）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="white_shirt">white_shirt</span>
+      <span class="meaning">白シャツ</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="collared_shirt">collared_shirt</span>
+      <span class="meaning">襟付きシャツ</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="long_sleeves">long_sleeves</span>
+      <span class="meaning">長袖</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="sleeve_cuffs">sleeve_cuffs</span>
+      <span class="meaning">袖口カフス</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="open_shirt">open_shirt</span>
+      <span class="meaning">シャツが大胆に開いている</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="partially_unbuttoned">partially_unbuttoned</span>
+      <span class="meaning">1個だけボタンを外した控えめな開き</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="see-through_shirt">see-through_shirt</span>
+      <span class="meaning">透けたシャツ（薄手素材）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="wet_shirt">wet_shirt</span>
+      <span class="meaning">濡れて透けたシャツ（濡れ透け）</span>
+    </div>
+  </div>
+
+  <h3>下着・ノー系</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="no_bra">no_bra</span>
+      <span class="meaning">ブラジャーを着けていない</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="no_panties">no_panties</span>
+      <span class="meaning">パンツを履いていない</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="nopan">nopan</span>
+      <span class="meaning">no_panties のエイリアス（同じ）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="bottomless">bottomless</span>
+      <span class="meaning">腰から下は全裸（上着あり）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="no_pants">no_pants</span>
+      <span class="meaning">ズボンを履いていない（下着はあり）</span>
+    </div>
+  </div>
+
+  <h3>胸（サイズ・形）</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="flat_chest">flat_chest</span>
+      <span class="meaning">ほぼ平坦</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="small_breasts">small_breasts</span>
+      <span class="meaning">小さめ（手のひらサイズ）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="medium_breasts">medium_breasts</span>
+      <span class="meaning">中くらい</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="large_breasts">large_breasts</span>
+      <span class="meaning">大きめ（顔と同じかそれ以上）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="huge_breasts">huge_breasts</span>
+      <span class="meaning">非常に大きい</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="perky_breasts">perky_breasts</span>
+      <span class="meaning">張りのある上向きの胸（45:55比率）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="sagging_breasts">sagging_breasts</span>
+      <span class="meaning">たるんだ胸（perkyの対義語）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="pointy_breasts">pointy_breasts</span>
+      <span class="meaning">先が尖った胸（円錐形）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="torpedo_breasts">torpedo_breasts</span>
+      <span class="meaning">pointy_breasts のエイリアス</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="hanging_breasts">hanging_breasts</span>
+      <span class="meaning">重力で垂れ下がっている胸</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="breasts_apart">breasts_apart</span>
+      <span class="meaning">胸が離れている（谷間なし）</span>
+    </div>
+  </div>
+
+  <h3>胸（露出・見え方）</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="cleavage">cleavage</span>
+      <span class="meaning">谷間が見える</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="absolute_cleavage">absolute_cleavage</span>
+      <span class="meaning">非常に深い谷間（へそ近くまで）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="sideboob">sideboob</span>
+      <span class="meaning">横から胸が見える</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="underboob">underboob</span>
+      <span class="meaning">下から胸が見える</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="skindentation">skindentation</span>
+      <span class="meaning">服や下着が肉に食い込む跡</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="bursting_breasts">bursting_breasts</span>
+      <span class="meaning">服から胸がはみ出しそう</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="nipple_outline">nipple_outline</span>
+      <span class="meaning">服越しに乳首の形が浮き出る</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="nipples_visible_through_clothing">nipples_visible_through_clothing</span>
+      <span class="meaning">服越しに乳首が見える</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="covered_nipples">covered_nipples</span>
+      <span class="meaning">乳首が隠れている</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="nipples">nipples</span>
+      <span class="meaning">乳首が見える</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="areola">areola</span>
+      <span class="meaning">乳輪が見える</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="breasts_out">breasts_out</span>
+      <span class="meaning">服から胸がはみ出している（open_shirtの延長線上）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="nipple_slip">nipple_slip</span>
+      <span class="meaning">乳首チラ（不意に見える）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="areola_slip">areola_slip</span>
+      <span class="meaning">乳輪チラ</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="bare_breasts">bare_breasts</span>
+      <span class="meaning">裸の胸（服なしで胸が見える状態）</span>
+    </div>
+  </div>
+
+  <h3>胸（アクション）</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="hand_on_own_chest">hand_on_own_chest</span>
+      <span class="meaning">片手を自分の胸に置く</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="covering_breasts">covering_breasts</span>
+      <span class="meaning">胸を隠している（手・腕・物）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="handbra">handbra</span>
+      <span class="meaning">covering_breasts のエイリアス</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="breast_hold">breast_hold</span>
+      <span class="meaning">自分の胸を腕で支える</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="breast_grab">breast_grab</span>
+      <span class="meaning">他人に胸を掴まれる</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="breast_lift">breast_lift</span>
+      <span class="meaning">手で胸を持ち上げる</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="breast_squeeze">breast_squeeze</span>
+      <span class="meaning">胸を押しつぶす</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="between_breasts">between_breasts</span>
+      <span class="meaning">胸の間に何か挟まる</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="grabbing_own_breast">grabbing_own_breast</span>
+      <span class="meaning">自分の胸を掴む・揉む（セルフ乳揉み）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="breast_suppress">breast_suppress</span>
+      <span class="meaning">手を自分の胸の上に置く・押さえる（穏やかな接触）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="guided_breast_grab">guided_breast_grab</span>
+      <span class="meaning">自分の手で他人の手を胸に導く（セルフ胸タッチ）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="breasts_squeezed_together">breasts_squeezed_together</span>
+      <span class="meaning">両側から胸を寄せる（谷間を作る）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="groping">groping</span>
+      <span class="meaning">性的な触れ方（乳房や尻を触る）。fondle/fondling/gropeのエイリアス</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="hand_on_another&#39;s_chest">hand_on_another&#39;s_chest</span>
+      <span class="meaning">他人の胸に手を置く</span>
+    </div>
+
+    <div class="dict-card">
+      <span class="tag" data-tag="guiding_hand">guiding_hand</span>
+      <span class="meaning">手を導く（より一般的な表現）</span>
+    </div>
+  </div>
+
+  <h3>肌・質感</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="shiny_skin">shiny_skin</span>
+      <span class="meaning">肌にスペキュラ光沢（汗・湿気寄り）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="shiny_breasts">shiny_breasts</span>
+      <span class="meaning">胸に特に光沢がある</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="sweat">sweat</span>
+      <span class="meaning">汗（肌の光沢を増す）</span>
+    </div>
+  </div>
+
+  <h3>ポーズ・動作</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="incoming_hug">incoming_hug</span>
+      <span class="meaning">ハグ待ち・両手を広げて迎える</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="reaching_towards_viewer">reaching_towards_viewer</span>
+      <span class="meaning">カメラに向かって手を伸ばす</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="outstretched_arms">outstretched_arms</span>
+      <span class="meaning">両手を伸ばす</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="open_arms">open_arms</span>
+      <span class="meaning">曖昧タグ。outstretched_arms等を推奨</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="waiting_for_kiss">waiting_for_kiss</span>
+      <span class="meaning">キス待ち（Wikiに「キス待ち」と日本語表記あり）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="incoming_kiss">incoming_kiss</span>
+      <span class="meaning">視聴者（POV）に向かってキスを待つ・しようとする</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="puckered_lips">puckered_lips</span>
+      <span class="meaning">唇をすぼめてキスを誘う表情</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="hand_on_another&#39;s_cheek">hand_on_another&#39;s_cheek</span>
+      <span class="meaning">相手の手を自分の頬に当てる（POVで視聴者の手を導く）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="lying_on_person">lying_on_person</span>
+      <span class="meaning">他人の上に横たわる（押し倒した後に抱きついたままの表現に近い）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="straddling">straddling</span>
+      <span class="meaning">馬乗り・跨る（straddle のエイリアス）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="pouncing">pouncing</span>
+      <span class="meaning">飛びつく・勢いよく押しす動作</span>
+    </div>
+  </div>
+
+  <h3>構図・カメラ</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="pov">pov</span>
+      <span class="meaning">一人称視点</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="pov_hands">pov_hands</span>
+      <span class="meaning">視聴者の手が画面内に見えるPOV</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="cowboy_shot">cowboy_shot</span>
+      <span class="meaning">太ももから上の構図</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="upper_body">upper_body</span>
+      <span class="meaning">胸と顔しか映らない（画角が狭い）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="navel">navel</span>
+      <span class="meaning">おへそを明示</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="downblouse">downblouse</span>
+      <span class="meaning">上から胸元を覗き込む構図（povと相性が良い）</span>
+    </div>
+  </div>
+
+  <h3>画風・技術</h3>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="anime_coloring">anime_coloring</span>
+      <span class="meaning">アニメ塗り（影・ハイライトあり）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="cel_shading">cel_shading</span>
+      <span class="meaning">セルシェーディング（影を塊で塗る）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="thick_lineart">thick_lineart</span>
+      <span class="meaning">太い線画</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="thin_lineart">thin_lineart</span>
+      <span class="meaning">細い線画（繊細で軽やかな印象）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="flat_color">flat_color</span>
+      <span class="meaning">影なしの平塗り</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="soft_shading">soft_shading</span>
+      <span class="meaning">グラデーションで柔らかく影をつける</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="color_trace">color_trace</span>
+      <span class="meaning">色トレス（輪郭線に色が乗るアニメ塗り）</span>
+    </div>
+  </div>
+</section>
+
+<!-- 注意点 -->
+<section>
+  <h2>タグの使い分け・注意点</h2>
+
+  <div class="dict-card" style="margin:0.5rem 0;">
+    <span class="meaning"><strong style="color:var(--accent);">cleavage vs breasts_apart</strong><br>対義語。谷間が見えるなら cleavage、胸が離れているなら breasts_apart。両方は入れない。</span>
+  </div>
+  <div class="dict-card" style="margin:0.5rem 0;">
+    <span class="meaning"><strong style="color:var(--accent);">open_shirt vs partially_unbuttoned</strong><br>open_shirt はほぼ全開寄り。partially_unbuttoned は1個だけボタンを外した控えめな開き。</span>
+  </div>
+  <div class="dict-card" style="margin:0.5rem 0;">
+    <span class="meaning"><strong style="color:var(--accent);">no_panties の使えない場面</strong><br>全裸・水着・競技用ユニフォームなど、そもそもパンツを着用しない服装では使わない。</span>
+  </div>
+  <div class="dict-card" style="margin:0.5rem 0;">
+    <span class="meaning"><strong style="color:var(--accent);">bottomless の条件</strong><br>「上着は着ているが腰から下は全裸」のみに使用。全裸やパンツだけの場合は使わない。</span>
+  </div>
+  <div class="dict-card" style="margin:0.5rem 0;">
+    <span class="meaning"><strong style="color:var(--accent);">競合タグに注意</strong><br>small_breasts と large_breasts を同時に入れるとAIが混乱する。どちらか一方だけにする。</span>
+  </div>
+  <div class="dict-card" style="margin:0.5rem 0;">
+    <span class="meaning"><strong style="color:var(--accent);">エイリアス（同じタグ）</strong><br>see-through_shirt = transparent_shirt / nopan = no_panties / handbra = covering_breasts</span>
+  </div>
+  <div class="dict-card" style="margin:0.5rem 0;">
+    <span class="meaning"><strong style="color:var(--accent);">waiting_for_kiss vs imminent_kiss</strong><br>waiting_for_kiss / incoming_kiss はPOV（視聴者）向け。imminent_kiss は「2人のキャラ間のキス直前」でPOVには使わない。</span>
+  </div>
+</section>
+
+<!-- ポーズの矛盾 -->
+<section>
+  <h2>ポーズの矛盾チェック</h2>
+  <div class="dict-grid">
+    <div class="dict-card">
+      <span class="tag" data-tag="incoming_hug">incoming_hug</span>
+      <span class="meaning">× hand_on_own_chest → 矛盾（両手を広げる vs 胸に手を置く）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="outstretched_arms">outstretched_arms</span>
+      <span class="meaning">× hand_on_own_chest → 矛盾（両手を伸ばす vs 片手を胸に）</span>
+    </div>
+    <div class="dict-card">
+      <span class="tag" data-tag="hand_on_own_chest">hand_on_own_chest</span>
+      <span class="meaning">+ reaching_towards_viewer → 片手版なら成立（難易度高め）</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Danbooruタグまとめ & プロンプト優先順位ガイド</p>
+  <p style="font-size:0.72rem;margin-top:0.3rem;">タグをタップで編集欄に追加 / 印刷 → PDF保存で紙化</p>
+</footer>
+
+<script>
+const DEFAULT_PROMPT = `masterpiece, best quality,
+1girl, solo,
+half_updo, very_long_hair, silver_hair, hair_bow, blue_bow, bangs, eyebrows_visible_through_hair, hair_between_eyes,
+big_eyes, light_smile, blush, small_nose, looking_at_viewer,
+dress_shirt, white_shirt, collared_shirt, long_sleeves, sleeve_cuffs, see-through_shirt, open_shirt, no_bra,
+large_breasts, perky_breasts, cleavage, shiny_skin,
+incoming_hug, reaching_towards_viewer, outstretched_arms,
+pov, cowboy_shot, navel,
+anime_coloring, cel_shading, thick_lineart`;
+
+let toastTimer = null;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+
+  // Clear previous timer to prevent toast from disappearing too quickly on rapid taps
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+  }
+
+  toastTimer = setTimeout(function() {
+    t.classList.remove('show');
+    toastTimer = null;
+  }, 2000);
+}
+
+function copyEditor() {
+  const editor = document.getElementById('prompt-editor');
+  const text = editor.value;
+
+  // Try modern clipboard API first (works on HTTPS sites)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showToast('コピーしました！');
+    }).catch(function() {
+      selectTextForManualCopy(editor);
+    });
+  } else {
+    // Fallback for local files (file://) on iOS Safari
+    selectTextForManualCopy(editor);
+  }
+}
+
+function selectTextForManualCopy(editor) {
+  editor.focus();
+  editor.select();
+
+  // iOS Safari needs special handling
+  const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isiOS) {
+    editor.setSelectionRange(0, editor.value.length);
+  }
+
+  // Try execCommand as last resort
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch (e) {
+    ok = false;
+  }
+
+  if (ok) {
+    showToast('コピーしました！');
+    editor.setSelectionRange(0, 0);
+  } else {
+    // If all automatic methods fail, leave text selected and prompt user
+    showToast('テキストを選択しました。長押しで「コピー」してください');
+  }
+}
+
+function resetPrompt() {
+  document.getElementById('prompt-editor').value = DEFAULT_PROMPT;
+  updateTagVisualState();
+  showToast('初期値に戻しました');
+}
+
+function clearPrompt() {
+  document.getElementById('prompt-editor').value = '';
+  updateTagVisualState();
+  showToast('クリアしました');
+}
+
+function addTag(tag) {
+  const editor = document.getElementById('prompt-editor');
+  let val = editor.value;
+
+  // Check if tag already exists in the prompt
+  const tagPattern = new RegExp('\\b' + tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
+
+  if (tagPattern.test(val)) {
+    // Tag exists → remove it
+    val = val.replace(tagPattern, '');
+    // Clean up extra commas and spaces
+    val = val.replace(/,\s*,/g, ',');
+    val = val.replace(/\s+/g, ' ');
+    val = val.replace(/,\s*$/g, '');
+    val = val.replace(/^\s*,/g, '');
+    val = val.trim();
+    editor.value = val;
+    showToast(tag + ' を削除しました');
+  } else {
+    // Tag doesn't exist → add it
+    let newVal = val.trim();
+    if (newVal && !newVal.endsWith(',')) {
+      newVal += ', ';
+    } else if (newVal) {
+      newVal += ' ';
+    }
+    editor.value = newVal + tag;
+    showToast(tag + ' を追加しました');
+  }
+}
+
+function copyTag(el) {
+  const text = el.textContent.trim();
+  copyToClipboard(text);
+  el.classList.add('copied');
+  setTimeout(() => el.classList.remove('copied'), 800);
+}
+
+function copyToClipboard(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;';
+  ta.readOnly = false;
+  document.body.appendChild(ta);
+
+  ta.focus();
+  ta.select();
+
+  const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isiOS) {
+    const range = document.createRange();
+    range.selectNodeContents(ta);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    ta.setSelectionRange(0, text.length);
+  }
+
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch (e) {
+    ok = false;
+  }
+
+  document.body.removeChild(ta);
+  if (window.getSelection) {
+    window.getSelection().removeAllRanges();
+  }
+
+  if (ok) {
+    showToast('コピーしました！');
+  } else {
+    showToast('コピーに失敗しました');
+  }
+}
+
+function toggleCollapsible(id) {
+  const section = document.getElementById(id);
+  section.classList.toggle('open');
+}
+</script>
+
+<!-- Tag interactions: tap to add/remove, copy button to copy -->
+<script>
+(function() {
+  function copySingleTag(tagName, comboText) {
+    var textToCopy = comboText || tagName;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy).then(function() {
+        if (comboText) {
+          showToast('組み合わせをコピーしました');
+        } else {
+          showToast(tagName + ' をコピーしました');
+        }
+      }).catch(function() {
+        showToast('コピーに失敗しました');
+      });
+    } else {
+      showToast('コピーに失敗しました');
+    }
+  }
+
+  // Default tag order for smart insertion (category order)
+  const DEFAULT_TAG_ORDER = [
+    "masterpiece", "best quality",
+    "1girl", "solo",
+    "half_updo", "very_long_hair", "silver_hair", "hair_bow", "blue_bow", "bangs", "eyebrows_visible_through_hair", "hair_between_eyes",
+    "big_eyes", "light_smile", "blush", "small_nose", "looking_at_viewer",
+    "dress_shirt", "white_shirt", "collared_shirt", "long_sleeves", "sleeve_cuffs", "see-through_shirt", "open_shirt", "no_bra",
+    "large_breasts", "perky_breasts", "cleavage", "shiny_skin",
+    "incoming_hug", "reaching_towards_viewer", "outstretched_arms",
+    "pov", "cowboy_shot", "navel",
+    "anime_coloring", "cel_shading", "thick_lineart"
+  ];
+
+  const tagOrderMap = {};
+  DEFAULT_TAG_ORDER.forEach(function(tag, index) {
+    tagOrderMap[tag] = index;
+  });
+
+  function toggleTag(tagName) {
+    const editor = document.getElementById('prompt-editor');
+    let val = editor.value;
+    const pattern = new RegExp('\\b' + tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
+
+    if (pattern.test(val)) {
+      // Remove
+      val = val.replace(pattern, '');
+      val = val.replace(/,\s*,/g, ',');
+      val = val.replace(/\s+/g, ' ');
+      val = val.replace(/,\s*$/g, '');
+      val = val.replace(/^\s*,/g, '');
+      editor.value = val.trim();
+      showToast(tagName + ' を削除しました');
+    } else {
+      // Smart add: insert in category order
+      smartAddTag(tagName);
+    }
+  }
+
+  function smartAddTag(tagName) {
+    const editor = document.getElementById('prompt-editor');
+    let currentText = editor.value.trim();
+
+    if (!currentText) {
+      editor.value = tagName;
+      showToast(tagName + ' 追加しました');
+      return;
+    }
+
+    // Parse current tags
+    let currentTags = currentText.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
+
+    const targetOrder = tagOrderMap[tagName];
+
+    if (targetOrder === undefined) {
+      // Unknown tag: append to end
+      editor.value = currentTags.join(', ') + ', ' + tagName;
+      showToast(tagName + ' を追加しました');
+      return;
+    }
+
+    // Find insertion position based on default category order
+    let insertIndex = currentTags.length; // default: end
+    for (let i = 0; i < currentTags.length; i++) {
+      const order = tagOrderMap[currentTags[i]];
+      if (order !== undefined && order > targetOrder) {
+        insertIndex = i;
+        break;
+      }
+    }
+
+    // Insert at the correct position
+    currentTags.splice(insertIndex, 0, tagName);
+    editor.value = currentTags.join(', ');
+    showToast(tagName + ' を追加しました');
+  }
+
+  function addCopyButtons() {
+    const cards = document.querySelectorAll('.dict-card');
+    cards.forEach(function(card) {
+      // Skip if already has a copy button
+      if (card.querySelector('.copy-btn')) return;
+
+      const comboText = card.getAttribute('data-combo');
+      const tag = card.querySelector('.tag[data-tag]');
+
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'コピー';
+      btn.type = 'button';
+
+      if (comboText) {
+        // Combo card: copy the entire combo
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          copySingleTag(null, comboText);
+        });
+      } else if (tag) {
+        // Single tag card: copy the tag
+        const tagName = tag.getAttribute('data-tag');
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          copySingleTag(tagName, null);
+        });
+      } else {
+        return; // Nothing to copy
+      }
+
+      // Insert button at the end of the card (absolute positioned, so placement in DOM matters less)
+      card.appendChild(btn);
+    });
+  }
+
+  function initTagClicks() {
+    const tags = document.querySelectorAll('.tag[data-tag]');
+    tags.forEach(function(tag) {
+      tag.addEventListener('click', function(e) {
+        // Prevent triggering if clicking the copy button
+        if (e.target.classList.contains('copy-btn')) return;
+        const tagName = tag.getAttribute('data-tag');
+        toggleTag(tagName);
+      });
+    });
+  }
+
+  function updateTagVisualState() {
+    const editor = document.getElementById('prompt-editor');
+    const val = editor.value;
+    const tags = document.querySelectorAll('.tag[data-tag]');
+    tags.forEach(function(tag) {
+      const tagName = tag.getAttribute('data-tag');
+      const pattern = new RegExp('\b' + tagName.replace(/[.*+?^${}()|[\]\\]/g, '\$&') + '\b');
+      if (pattern.test(val)) {
+        tag.classList.add('active');
+      } else {
+        tag.classList.remove('active');
+      }
+    });
+  }
+
+  function init() {
+    addCopyButtons();
+    initTagClicks();
+    updateTagVisualState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+<!-- Tag interactions End -->
+
+<!-- Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').catch(function() {
+      // Silent fail for local file usage
+    });
+  });
+}
+</script>
+<!-- Service Worker End -->
+</body>
+</html>
